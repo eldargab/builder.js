@@ -1,4 +1,46 @@
 
+0.6.2 / 2013-01-04 
+==================
+
+  * add .removeFile(type, filename)
+  * add .alias() helper
+  * rename .name to .basename
+  * refactor .lookup() to use fs.existsSync
+
+0.6.1 / 2013-01-02 
+==================
+
+  * fix root-level main support for all components. Closes #53
+
+0.6.0 / 2013-01-01 
+==================
+
+  * add async hook support. Closes #43
+  * update require
+
+0.5.5 / 2012-12-30 
+==================
+
+  * add lookup and readfile caching mechanisms. Closes #50
+  * update require
+
+0.5.4 / 2012-12-20 
+==================
+
+  * remove rework dep
+
+0.5.3 / 2012-12-20 
+==================
+
+  * update rework
+
+0.5.2 / 2012-12-20 
+==================
+
+  * add initial plugin support
+  * fix: do not rewrite urls relative to host (closes #45)
+  * fix: .addFile(type) should always add files to conf[type]
+
 0.5.1 / 2012-12-04 
 ==================
 
