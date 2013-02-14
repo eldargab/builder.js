@@ -16,9 +16,9 @@ var Builder = require('..')
   , read = fs.readFileSync;
 
 function ejsPlugin(builder) {
-  builder.hook('before scripts', function(pkg){
+  builder.hook('before scripts', function(pkg, fn){
     var tmpls = pkg.conf.templates;
-    if (!tmpls) return;
+    if (!tmpls) return fn();
     tmpls.forEach(function(file){
       var path = pkg.path(file);
       var str = fs.readFileSync(path, 'utf8');
@@ -27,6 +27,7 @@ function ejsPlugin(builder) {
       var name = file.split('.')[0] + '.js';
       pkg.addFile('scripts', name, js);
     });
+    fn();
   })
 }
 
@@ -69,6 +70,19 @@ describe('Builder hooks', function(){
         var js = res.require + res.js + 'require("parent")';
         var ret = vm.runInNewContext(js);
         ret.should.equal('<p>Hello Tobi</p>');
+        done();
+      })
+    })
+
+    it('should catch hook errors', function (done) {
+      var builder = new Builder('test/fixtures/template-plugin');
+      builder.addLookup('test/fixtures');
+      builder.hook('before scripts', function (pkg, cb) {
+        cb(new Error('hook error'));
+      });
+
+      builder.build(function(err, res){
+        err.message.should.equal('hook error');
         done();
       })
     })

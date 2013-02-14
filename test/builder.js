@@ -21,7 +21,7 @@ describe('Builder', function(){
       builder.buildScripts(function(err, js){
         if (err) return done(err);
         var out = read('test/fixtures/hello-js.js', 'utf8');
-        js.should.equal(out);
+        js.trim().should.equal(out.trim());
         done();
       })
     })
@@ -32,7 +32,7 @@ describe('Builder', function(){
       builder.buildScripts(function(err, js){
         if (err) return done(err);
         var out = read('test/fixtures/ignore.js', 'utf8');
-        js.should.equal(out);
+        js.trim().should.equal(out.trim());
         done();
       })
     })
@@ -43,7 +43,7 @@ describe('Builder', function(){
       builder.buildScripts(function(){});
       builder.on('dependency', function(builder){
         builder.dir.should.be.a('string');
-        builder.name.should.equal('component-emitter');
+        builder.basename.should.equal('component-emitter');
         done();
       });
     })
@@ -67,7 +67,7 @@ describe('Builder', function(){
       builder.buildStyles(function(){});
       builder.on('dependency', function(builder){
         builder.dir.should.be.a('string');
-        builder.name.should.equal('component-emitter');
+        builder.basename.should.equal('component-emitter');
         done();
       });
     })
@@ -108,6 +108,31 @@ describe('Builder', function(){
         var out = require('component-require');
         res.require.should.equal(out);
         done();
+      })
+    })
+
+    it('should be idempotent', function(done){
+      var builder = new Builder('test/fixtures/hello');
+      builder.addLookup('test/fixtures');
+      builder.build(function(err, a){
+        if (err) return done(err);
+
+        var builder = new Builder('test/fixtures/hello');
+        builder.addLookup('test/fixtures');
+        builder.build(function(err, b){
+          if (err) return done(err);
+          b.js.should.equal(a.js);
+          b.css.should.equal(a.css);
+
+          var builder = new Builder('test/fixtures/hello');
+          builder.addLookup('test/fixtures');
+          builder.build(function(err, c){
+            if (err) return done(err);
+            c.js.should.equal(a.js);
+            c.css.should.equal(a.css);
+            done();
+          })
+        })
       })
     })
 
@@ -154,9 +179,9 @@ describe('Builder', function(){
         res.css.should.include('url("build/assets/images/logo.png")');
         res.css.should.include('url("build/assets/images/maru.jpeg")');
         res.css.should.include('url("build/assets/images/npm.png")');
-        res.css.should.include('url("http://example.com/images/manny.png")');
-        res.css.should.include('url("/public/images/foo.png")')
-        res.css.should.include('url("data:image/png;base64,PNG DATA HERE")');
+        res.css.should.include('url(http://example.com/images/manny.png)');
+        res.css.should.include('url(/public/images/foo.png)')
+        res.css.should.include('url(data:image/png;base64,PNG DATA HERE)');
         done();
       });
     })
@@ -227,7 +252,7 @@ describe('Builder', function(){
       builder.buildScripts(function(err, js){
         if (err) return done(err);
         var out = read('test/fixtures/hello-sourceurl-js.js', 'utf8');
-        js.should.equal(out);
+        js.trim().should.equal(out.trim());
         done();
       })
     })
@@ -254,6 +279,18 @@ describe('Builder', function(){
       if (err) return done(err);
       res.js.should.include('require.alias("boot/boot.js", "boot/index.js")');
       res.js.should.include('require.alias("main/foo.js", "boot/deps/main/index.js")');
+      done();
+    })
+  })
+
+  it('should support root-level "main"', function(done){
+    var builder = new Builder('test/fixtures/main-boot');
+    builder.addLookup('test/fixtures');
+    builder.build(function(err, res){
+      if (err) return done(err);
+      res.js.should.include('require.alias("boot/boot.js", "boot/index.js")');
+      res.js.should.include('require.alias("main/foo.js", "boot/deps/main/index.js")');
+      res.js.should.include('require.alias("main/foo.js", "main/index.js")');
       done();
     })
   })
